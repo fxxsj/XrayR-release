@@ -84,7 +84,7 @@ before_show_menu() {
 }
 
 install() {
-    bash <(curl -Ls https://raw.githubusercontent.com/fxxsj/XrayR-release/master/install.sh)
+    bash <(curl -Ls https://raw.githubusercontent.com/fxxsj/XrayR-release/main/install.sh)
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
             start
@@ -108,7 +108,7 @@ update() {
 #        fi
 #        return 0
 #    fi
-    bash <(curl -Ls https://raw.githubusercontent.com/fxxsj/XrayR-release/master/install.sh) $version
+    bash <(curl -Ls https://raw.githubusercontent.com/fxxsj/XrayR-release/main/install.sh) $version
     if [[ $? == 0 ]]; then
         echo -e "${green}更新完成，已自动重启 XrayR，请使用 XrayR log 查看运行日志${plain}"
         exit
@@ -270,7 +270,7 @@ install_bbr() {
 }
 
 update_shell() {
-    wget -O /usr/bin/XrayR -N --no-check-certificate https://raw.githubusercontent.com/fxxsj/XrayR-release/master/XrayR.sh
+    wget -O /usr/bin/XrayR -N --no-check-certificate https://raw.githubusercontent.com/fxxsj/XrayR-release/main/XrayR.sh
     if [[ $? != 0 ]]; then
         echo ""
         echo -e "${red}下载脚本失败，请检查本机能否连接 Github${plain}"
@@ -279,6 +279,47 @@ update_shell() {
         chmod +x /usr/bin/XrayR
         echo -e "${green}升级脚本成功，请重新运行脚本${plain}" && exit 0
     fi
+}
+
+install_nginx() {
+    echo -e "${green}开始安装 Nginx...${plain}"
+    
+    if [[ x"${release}" == x"centos" ]]; then
+        yum install nginx -y
+    elif [[ x"${release}" == x"debian" || x"${release}" == x"ubuntu" ]]; then
+        apt update
+        apt install nginx-full -y
+    else
+        echo -e "${red}不支持的操作系统${plain}"
+        return 1
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo -e "${red}Nginx 安装失败，请检查错误信息${plain}"
+        return 1
+    fi
+
+    echo -e "${green}Nginx 安装完成，正在配置...${plain}"
+
+    # 下载配置文件
+    wget -O /etc/nginx/nginx.conf https://raw.githubusercontent.com/fxxsj/XrayR-release/main/config/nginx.conf
+
+    if [ $? -ne 0 ]; then
+        echo -e "${yellow}警告：下载 Nginx 配置文件失败，将使用默认配置${plain}"
+    else
+        echo -e "${green}Nginx 配置文件下载成功${plain}"
+    fi
+
+    # 启用并启动 Nginx
+    systemctl enable nginx
+    systemctl restart nginx
+
+    if [ $? -ne 0 ]; then
+        echo -e "${red}Nginx 启动失败，请检查配置文件${plain}"
+        return 1
+    fi
+
+    echo -e "${green}Nginx 安装并配置成功${plain}"
 }
 
 # 0: running, 1: not running, 2: not installed
@@ -406,6 +447,7 @@ show_menu() {
  ${green}11.${plain} 一键安装 bbr (最新内核)
  ${green}12.${plain} 查看 XrayR 版本 
  ${green}13.${plain} 升级维护脚本
+ ${green}14.${plain} 安装 Nginx
  "
  #后续更新可加入上方字符串中
     show_status
@@ -440,7 +482,9 @@ show_menu() {
         ;;
         13) update_shell
         ;;
-        *) echo -e "${red}请输入正确的数字 [0-12]${plain}"
+        14) install_nginx
+        ;;
+        *) echo -e "${red}请输入正确的数字 [0-14]${plain}"
         ;;
     esac
 }
