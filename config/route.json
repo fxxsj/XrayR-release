@@ -1,0 +1,17 @@
+{
+    "rules": [
+        {
+            "type": "field",
+            "domain": [
+                "geosite:openai",
+                "geosite:google",
+                "geosite:netflix",
+                "geosite:disney",
+                "geosite:linkedin",
+                "geosite:cn",
+                "ip.sb"
+            ],
+            "outboundTag": "WARP-socks5"
+        }
+    ]
+  }

@@ -1,0 +1,218 @@
+Log:
+  Level: warning # 日志级别：none（无日志）、error（错误）、warning（警告）、info（信息）、debug（调试）
+  AccessPath: # /etc/XrayR/access.Log 日志存储路径
+  ErrorPath: # /etc/XrayR/error.log 错误日志存储路径
+DnsConfigPath: # /etc/XrayR/dns.json # DNS配置文件路径，详情请参阅：https://xtls.github.io/config/dns.html
+RouteConfigPath: /etc/XrayR/route.json # 路由配置文件路径，详情请参阅：https://xtls.github.io/config/routing.html
+InboundConfigPath: # /etc/XrayR/custom_inbound.json # 自定义入站配置文件路径，详情请参阅：https://xtls.github.io/config/inbound.html
+OutboundConfigPath: /etc/XrayR/custom_outbound.json # 自定义出站配置文件路径，详情请参阅：https://xtls.github.io/config/outbound.html
+ConnectionConfig:
+  Handshake: 4 # 握手时间限制，单位：秒
+  ConnIdle: 30 # 连接空闲时间限制，单位：秒
+  UplinkOnly: 2 # 下行关闭后连接的时间限制，单位：秒
+  DownlinkOnly: 4 # 上行关闭后连接的时间限制，单位：秒
+  BufferSize: 64 # 每个连接的内部缓存大小，单位：kB
+Nodes:
+  - PanelType: "NewV2board" # 面板类型：SSpanel, NewV2board, PMpanel, Proxypanel, V2RaySocks, GoV2Panel
+    ApiConfig:
+      ApiHost: "http://127.0.0.1:667"
+      ApiKey: "123"
+      NodeID: 1
+      NodeType: Shadowsocks # 节点类型：V2ray, Vmess, Vless, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 30 # API请求的超时时间，单位：秒
+      EnableVless: true # 启用Vless协议（适用于V2ray类型）
+      VlessFlow: "xtls-rprx-vision" # 仅适用于 vless
+      SpeedLimit: 0 # Mbps，本地设置将替代远程设置，0表示禁用
+      DeviceLimit: 0 # 本地设置将替代远程设置，0表示禁用
+      RuleListPath: # /etc/XrayR/rulelist 本地规则列表文件路径
+      DisableCustomConfig: false # 禁用SSpanel的自定义配置
+    ControllerConfig:
+      ListenIP: 0.0.0.0 # 要监听的IP地址
+      SendIP: 0.0.0.0 # 要发送数据包的IP地址
+      UpdatePeriodic: 60 # 节点信息更新周期，单位：秒
+      DeviceOnlineMinTraffic: 100 # V2board面板设备数限制统计阈值，大于此流量时上报设备数在线，单位kB，不填则默认上报
+      EnableDNS: false # 启用自定义DNS配置，请确保已正确设置dns.json文件
+      DNSType: AsIs # DNS策略：AsIs, UseIP, UseIPv4, UseIPv6
+      EnableProxyProtocol: false # 仅适用于WebSocket和TCP
+      AutoSpeedLimitConfig:
+        Limit: 0 # 警告速度，设置为0以禁用自动限速（单位：Mbps）
+        WarnTimes: 0 # 连续警告次数后，用户将被限速。设置为0表示立即惩罚超速用户
+        LimitSpeed: 0 # 限速后的用户速度（单位：Mbps）
+        LimitDuration: 0 # 限速持续时间（单位：分钟）
+      GlobalDeviceLimitConfig:
+        Enable: false # 启用全局设备限制
+        RedisNetwork: tcp # Redis协议，tcp或unix
+        RedisAddr: 127.0.0.1:6379 # Redis服务器地址，或unix socket路径
+        RedisUsername: # Redis用户名
+        RedisPassword: YOUR PASSWORD # Redis密码
+        RedisDB: 0 # Redis数据库
+        Timeout: 5 # Redis请求超时时间，单位：秒
+        Expiry: 60 # 过期时间，单位：秒
+      EnableFallback: false # 仅支持Trojan和Vless
+      FallBackConfigs:  # 支持多重回退配置
+        - SNI: # TLS SNI（服务器名称指示），为空表示任何
+          Alpn: # Alpn，留空表示任何
+          Path: # HTTP路径，留空表示任何
+          Dest: 80 # 必填，回退目标，详情请参阅：https://xtls.github.io/config/features/fallback.html
+          ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+      EnableREALITY: false # 是否开启REALITY
+      DisableLocalREALITYConfig: false # 是否忽略本地REALITY配置
+      REALITYConfigs: # 本地REALITY配置
+        Show: false # 显示REALITY调试信息
+        Dest: m.media-amazon.com:443 # REALITY目标地址
+        ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+        ServerNames: # 必填，客户端可用的serverName列表，目前不支持*通配符
+          - m.media-amazon.com
+        PrivateKey: # 可不填
+        ShortIds: # 可不填
+          - ""
+          - 0123456789abcdef
+        MinClientVer: # 可选，Xray客户端的最低版本，格式为x.y.z
+        MaxClientVer: # 可选，Xray客户端的最高版本，格式为x.y.z
+        MaxTimeDiff: 0 # 可选，最大允许的时间差，单位：毫秒
+    CertConfig:
+      CertMode: none # 获取证书的方式：none（禁用TLS配置）、file、http、tls、dns
+      CertDomain: "node.com" # 证书域名
+      CertFile: /etc/XrayR/cert/node.pem # 如果CertMode为file，则提供此项
+      KeyFile: /etc/XrayR/cert/node.key
+      Provider: cloudflare # DNS证书提供商，获取完整支持列表请参阅：https://go-acme.github.io/lego/dns/
+      Email: email@gmail.com
+      DNSEnv: # DNS提供商使用的环境变量
+        CLOUDFLARE_EMAIL: email@gmail.com
+        CLOUDFLARE_API_KEY: 009da4d5dbf1dec2431c09fca86bfb09b42d9
+
+  - PanelType: "NewV2board" # 面板类型：SSpanel, NewV2board, PMpanel, Proxypanel, V2RaySocks, GoV2Panel
+    ApiConfig:
+      ApiHost: "http://127.0.0.1:667"
+      ApiKey: "123"
+      NodeID: 1
+      NodeType: Trojan # 节点类型：V2ray, Vmess, Vless, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 30 # API请求的超时时间，单位：秒
+      EnableVless: true # 启用Vless协议（适用于V2ray类型）
+      VlessFlow: "xtls-rprx-vision" # 仅适用于 vless
+      SpeedLimit: 0 # Mbps，本地设置将替代远程设置，0表示禁用
+      DeviceLimit: 0 # 本地设置将替代远程设置，0表示禁用
+      RuleListPath: # /etc/XrayR/rulelist 本地规则列表文件路径
+      DisableCustomConfig: false # 禁用SSpanel的自定义配置
+    ControllerConfig:
+      ListenIP: 0.0.0.0 # 要监听的IP地址
+      SendIP: 0.0.0.0 # 要发送数据包的IP地址
+      UpdatePeriodic: 60 # 节点信息更新周期，单位：秒
+      DeviceOnlineMinTraffic: 100 # V2board面板设备数限制统计阈值，大于此流量时上报设备数在线，单位kB，不填则默认上报
+      EnableDNS: false # 启用自定义DNS配置，请确保已正确设置dns.json文件
+      DNSType: AsIs # DNS策略：AsIs, UseIP, UseIPv4, UseIPv6
+      EnableProxyProtocol: false # 仅适用于WebSocket和TCP
+      AutoSpeedLimitConfig:
+        Limit: 0 # 警告速度，设置为0以禁用自动限速（单位：Mbps）
+        WarnTimes: 0 # 连续警告次数后，用户将被限速。设置为0表示立即惩罚超速用户
+        LimitSpeed: 0 # 限速后的用户速度（单位：Mbps）
+        LimitDuration: 0 # 限速持续时间（单位：分钟）
+      GlobalDeviceLimitConfig:
+        Enable: false # 启用全局设备限制
+        RedisNetwork: tcp # Redis协议，tcp或unix
+        RedisAddr: 127.0.0.1:6379 # Redis服务器地址，或unix socket路径
+        RedisUsername: # Redis用户名
+        RedisPassword: YOUR PASSWORD # Redis密码
+        RedisDB: 0 # Redis数据库
+        Timeout: 5 # Redis请求超时时间，单位：秒
+        Expiry: 60 # 过期时间，单位：秒
+      EnableFallback: false # 仅支持Trojan和Vless
+      FallBackConfigs:  # 支持多重回退配置
+        - SNI: # TLS SNI（服务器名称指示），为空表示任何
+          Alpn: # Alpn，留空表示任何
+          Path: # HTTP路径，留空表示任何
+          Dest: 80 # 必填，回退目标，详情请参阅：https://xtls.github.io/config/features/fallback.html
+          ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+      EnableREALITY: false # 是否开启REALITY
+      DisableLocalREALITYConfig: false # 是否忽略本地REALITY配置
+      REALITYConfigs: # 本地REALITY配置
+        Show: false # 显示REALITY调试信息
+        Dest: m.media-amazon.com:443 # REALITY目标地址
+        ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+        ServerNames: # 必填，客户端可用的serverName列表，目前不支持*通配符
+          - m.media-amazon.com
+        PrivateKey: # 可不填
+        ShortIds: # 可不填
+          - ""
+          - 0123456789abcdef
+        MinClientVer: # 可选，Xray客户端的最低版本，格式为x.y.z
+        MaxClientVer: # 可选，Xray客户端的最高版本，格式为x.y.z
+        MaxTimeDiff: 0 # 可选，最大允许的时间差，单位：毫秒
+    CertConfig:
+      CertMode: none # 获取证书的方式：none（禁用TLS配置）、file、http、tls、dns
+      CertDomain: "node.com" # 证书域名
+      CertFile: /etc/XrayR/cert/node.pem # 如果CertMode为file，则提供此项
+      KeyFile: /etc/XrayR/cert/node.key
+      Provider: cloudflare # DNS证书提供商，获取完整支持列表请参阅：https://go-acme.github.io/lego/dns/
+      Email: email@gmail.com
+      DNSEnv: # DNS提供商使用的环境变量
+        CLOUDFLARE_EMAIL: email@gmail.com
+        CLOUDFLARE_API_KEY: 009da4d5dbf1dec2431c09fca86bfb09b42d9
+
+  # - PanelType: "NewV2board" # 面板类型：SSpanel, NewV2board, PMpanel, Proxypanel, V2RaySocks, GoV2Panel
+  #   ApiConfig:
+  #     ApiHost: "http://127.0.0.1:667"
+  #     ApiKey: "123"
+  #     NodeID: 1
+  #     NodeType: Vmess # 节点类型：V2ray, Vmess, Vless, Shadowsocks, Trojan, Shadowsocks-Plugin
+  #     Timeout: 30 # API请求的超时时间，单位：秒
+  #     EnableVless: true # 启用Vless协议（适用于V2ray类型）
+  #     VlessFlow: "xtls-rprx-vision" # 仅适用于 vless
+  #     SpeedLimit: 0 # Mbps，本地设置将替代远程设置，0表示禁用
+  #     DeviceLimit: 0 # 本地设置将替代远程设置，0表示禁用
+  #     RuleListPath: # /etc/XrayR/rulelist 本地规则列表文件路径
+  #     DisableCustomConfig: false # 禁用SSpanel的自定义配置
+  #   ControllerConfig:
+  #     ListenIP: 0.0.0.0 # 要监听的IP地址
+  #     SendIP: 0.0.0.0 # 要发送数据包的IP地址
+  #     UpdatePeriodic: 60 # 节点信息更新周期，单位：秒
+  #     DeviceOnlineMinTraffic: 100 # V2board面板设备数限制统计阈值，大于此流量时上报设备数在线，单位kB，不填则默认上报
+  #     EnableDNS: false # 启用自定义DNS配置，请确保已正确设置dns.json文件
+  #     DNSType: AsIs # DNS策略：AsIs, UseIP, UseIPv4, UseIPv6
+  #     EnableProxyProtocol: false # 仅适用于WebSocket和TCP
+  #     AutoSpeedLimitConfig:
+  #       Limit: 0 # 警告速度，设置为0以禁用自动限速（单位：Mbps）
+  #       WarnTimes: 0 # 连续警告次数后，用户将被限速。设置为0表示立即惩罚超速用户
+  #       LimitSpeed: 0 # 限速后的用户速度（单位：Mbps）
+  #       LimitDuration: 0 # 限速持续时间（单位：分钟）
+  #     GlobalDeviceLimitConfig:
+  #       Enable: false # 启用全局设备限制
+  #       RedisNetwork: tcp # Redis协议，tcp或unix
+  #       RedisAddr: 127.0.0.1:6379 # Redis服务器地址，或unix socket路径
+  #       RedisUsername: # Redis用户名
+  #       RedisPassword: YOUR PASSWORD # Redis密码
+  #       RedisDB: 0 # Redis数据库
+  #       Timeout: 5 # Redis请求超时时间，单位：秒
+  #       Expiry: 60 # 过期时间，单位：秒
+  #     EnableFallback: false # 仅支持Trojan和Vless
+  #     FallBackConfigs:  # 支持多重回退配置
+  #       - SNI: # TLS SNI（服务器名称指示），为空表示任何
+  #         Alpn: # Alpn，留空表示任何
+  #         Path: # HTTP路径，留空表示任何
+  #         Dest: 80 # 必填，回退目标，详情请参阅：https://xtls.github.io/config/features/fallback.html
+  #         ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+  #     EnableREALITY: false # 是否开启REALITY
+  #     DisableLocalREALITYConfig: false # 是否忽略本地REALITY配置
+  #     REALITYConfigs: # 本地REALITY配置
+  #       Show: false # 显示REALITY调试信息
+  #       Dest: m.media-amazon.com:443 # REALITY目标地址
+  #       ProxyProtocolVer: 0 # 发送PROXY协议版本，0表示禁用
+  #       ServerNames: # 必填，客户端可用的serverName列表，目前不支持*通配符
+  #         - m.media-amazon.com
+  #       PrivateKey: # 可不填
+  #       ShortIds: # 可不填
+  #         - ""
+  #         - 0123456789abcdef
+  #       MinClientVer: # 可选，Xray客户端的最低版本，格式为x.y.z
+  #       MaxClientVer: # 可选，Xray客户端的最高版本，格式为x.y.z
+  #       MaxTimeDiff: 0 # 可选，最大允许的时间差，单位：毫秒
+  #   CertConfig:
+  #     CertMode: none # 获取证书的方式：none（禁用TLS配置）、file、http、tls、dns
+  #     CertDomain: "node.com" # 证书域名
+  #     CertFile: /etc/XrayR/cert/node.pem # 如果CertMode为file，则提供此项
+  #     KeyFile: /etc/XrayR/cert/node.key
+  #     Provider: cloudflare # DNS证书提供商，获取完整支持列表请参阅：https://go-acme.github.io/lego/dns/
+  #     Email: email@gmail.com
+  #     DNSEnv: # DNS提供商使用的环境变量
+  #       CLOUDFLARE_EMAIL: email@gmail.com
+  #       CLOUDFLARE_API_KEY: 009da4d5dbf1dec2431c09fca86bfb09b42d9
